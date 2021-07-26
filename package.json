@@ -8,6 +8,8 @@
     "build": "parcel build index.html"
   },
   "dependencies": {
+    "cannon-es": "0.18.0",
+    "cannon-es-debugger": "0.1.4",
     "dat.gui": "0.7.7",
     "three": "latest",
     "three-orbit-controls": "82.1.0",
