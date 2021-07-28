@@ -3,21 +3,62 @@ import { OrbitControls } from "three/examples/jsm/controls/OrbitControls";
 import * as CANNON from "cannon-es";
 import cannonDebugger from "cannon-es-debugger";
 import { Cube } from "./Cube";
+import { RepeatWrapping } from "three";
+import * as dat from "dat.gui";
 
 const CUBE_1_COLOR = 0xff3344;
 const CUBE_2_COLOR = 0x2222ff;
 const CUBE_3_COLOR = 0x661166;
 const CUBE_4_COLOR = 0x118811;
 
+/**
+ * Base
+ */
+// Debug
+const gui = new dat.GUI();
+
 const scene = new THREE.Scene();
 
+/**
+ * Loader
+ */
+const textureLoader = new THREE.TextureLoader();
+const wallDiffuseTexture = textureLoader.load(
+  "src/assets/wood-wall/wood-wall-diffuse.jpg"
+);
+const wallHeightTexture = textureLoader.load(
+  "src/assets/wood-wall/wood-wall-height.png"
+);
+const wallAoTexture = textureLoader.load(
+  "src/assets/wood-wall/wood-wall-ao.jpg"
+);
+const wallRoughnessTexture = textureLoader.load(
+  "src/assets/wood-wall/wood-wall-roughness.jpg"
+);
+
+const groundDiffuseTexture = textureLoader.load(
+  "src/assets/ground-leaves/ground-leaves-diffuse.jpg"
+);
+const groundHeightTexture = textureLoader.load(
+  "src/assets/ground-leaves/ground-leaves-height.png"
+);
+
+const groundAoTexture = textureLoader.load(
+  "src/assets/ground-leaves/ground-leaves-ao.png"
+);
+
+//groundDiffuseTexture.wrapS = THREE.RepeatWrapping;
+//groundDiffuseTexture.wrapT = THREE.RepeatWrapping;
+//groundDiffuseTexture.repeat.set(3, 3);
+
 // Light
-const light = new THREE.AmbientLight(0x404040);
-light.intensity = 3;
+const light = new THREE.AmbientLight(0xffffff, 0.5);
+const lightFolderGui = gui.addFolder("LIght");
+lightFolderGui.add(light, "intensity").min(0).max(2).step(0.001);
 scene.add(light);
 
-const blueLight = new THREE.PointLight(0x0000fff, 1, 100);
-light.position.set(10, 10, 10);
+const blueLight = new THREE.PointLight(0xffffff, 1, 100);
+light.position.set(0, 5, 2);
 scene.add(blueLight);
 
 const camera = new THREE.PerspectiveCamera(
@@ -26,7 +67,8 @@ const camera = new THREE.PerspectiveCamera(
   0.1,
   100
 );
-camera.position.z = 6;
+camera.position.y = 3;
+camera.position.z = 9;
 
 const renderer = new THREE.WebGLRenderer();
 renderer.setSize(window.innerWidth, window.innerHeight);
@@ -47,6 +89,44 @@ const cubes = [cube1, cube2, cube3, cube4];
 // Add all the meshes to the scene
 scene.add(...cubes.map((cube) => cube.mesh));
 
+const WALL_DEPTH = 0.1;
+const WALL_HEIGHT = 5;
+const wallGeometry = new THREE.BoxGeometry(10, WALL_HEIGHT, WALL_DEPTH);
+const wallMaterial = new THREE.MeshStandardMaterial({
+  map: wallDiffuseTexture,
+  displacementMap: wallHeightTexture,
+  aoMap: wallAoTexture
+  // roughnessMap: wallRoughnessTexture
+});
+wallMaterial.displacementScale = 0.1;
+const wallMeshLeft = new THREE.Mesh(wallGeometry, wallMaterial);
+wallMeshLeft.position.x = -5 - WALL_DEPTH;
+wallMeshLeft.position.y = WALL_HEIGHT / 2;
+wallMeshLeft.rotation.y = -Math.PI / 2;
+const wallMeshRight = new THREE.Mesh(wallGeometry, wallMaterial);
+wallMeshRight.position.x = 5 + WALL_DEPTH;
+wallMeshRight.position.y = WALL_HEIGHT / 2;
+wallMeshRight.rotation.y = -Math.PI / 2;
+const wallMeshBack = new THREE.Mesh(wallGeometry, wallMaterial);
+wallMeshBack.position.z = -5 - WALL_DEPTH;
+wallMeshBack.position.y = WALL_HEIGHT / 2;
+
+scene.add(wallMeshLeft, wallMeshRight, wallMeshBack);
+
+// Add the ground
+const groundMaterial = new THREE.MeshStandardMaterial({
+  map: groundDiffuseTexture,
+  displacementMap: groundHeightTexture
+  //aoMap: groundAoTexture
+  // roughnessMap: wallRoughnessTexture
+});
+groundMaterial.displacementScale = 1;
+const groundGeometry = new THREE.PlaneGeometry(10, 10, 200, 200);
+const groundMesh = new THREE.Mesh(groundGeometry, groundMaterial);
+groundMesh.rotation.x = -Math.PI / 2;
+groundMesh.position.x = 0;
+scene.add(groundMesh);
+
 /**
  * Physics
  */
@@ -65,7 +145,7 @@ const groundBody = new CANNON.Body({
   material: concreteMaterial
 });
 groundBody.quaternion.setFromEuler(-Math.PI / 2, 0, 0); // make it face up
-groundBody.position.y = -1;
+groundBody.position.y = 0;
 world.addBody(groundBody);
 
 // Physics interaction
@@ -80,7 +160,7 @@ const concretePlasticContactMaterial = new CANNON.ContactMaterial(
 world.addContactMaterial(concretePlasticContactMaterial);
 
 // Debugger
-cannonDebugger(scene, world.bodies);
+//cannonDebugger(scene, world.bodies);
 
 /**
  * Event listeners
