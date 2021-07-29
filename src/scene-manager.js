@@ -4,7 +4,12 @@ import * as CANNON from "cannon-es";
 
 import { OrbitControls } from "three/examples/jsm/controls/OrbitControls";
 import { createCubes } from "./cube-manager";
-import { wallMeshBack, wallMeshLeft, wallMeshRight } from "./walls";
+import {
+  wallMeshBack,
+  wallMeshLeft,
+  wallMeshRight,
+  wallMeshFront
+} from "./walls";
 import { textures } from "./textures";
 
 let gui, scene, camera, controls, renderer, world, cubes;
@@ -32,24 +37,49 @@ export const initScene = () => {
    * Objects
    */
   cubes = createCubes();
-  gui.add(cubes[0].mesh.material, "metalness").min(0).max(1).step(0.001);
-  gui.add(cubes[0].mesh.material, "roughness").min(0).max(1).step(0.001);
+
+  // Add cubes to gui
+  const params = [0, 1, 0.001]; // min max step
+  const colors = {
+    0: 0xff0000,
+    1: 0x0ff000,
+    2: 0x00ff00,
+    3: 0x000ff0
+  };
+  cubes.forEach((cube, index) => {
+    const guiFolderCube = gui.addFolder("Cube " + index);
+    guiFolderCube.add(cube.mesh.material, "metalness", ...params);
+    guiFolderCube.add(cube.mesh.material, "roughness", ...params);
+    guiFolderCube.add(cube.mesh.material, "emissiveIntensity", ...params);
+
+    guiFolderCube
+      .addColor(colors, `${index}`)
+      .name("color")
+      .onChange(function () {
+        cube.mesh.material.color.set(colors[index]);
+      });
+  });
 
   // Add all the meshes to the scene
   scene.add(...cubes.map((cube) => cube.mesh));
   // Add the walls
-  scene.add(wallMeshLeft, wallMeshRight, wallMeshBack);
+  scene.add(wallMeshLeft, wallMeshRight, wallMeshBack, wallMeshFront);
 
   // Add the ground
   const groundMaterial = new THREE.MeshStandardMaterial({
     map: textures.groundDiffuseTexture,
-    aoMap: textures.groundAoTexture
+    aoMap: textures.groundAoTexture,
+    metalness: 0.2,
+    roughness: 0.5
   });
-  const groundGeometry = new THREE.PlaneGeometry(10, 10, 200, 200);
+  const groundGeometry = new THREE.PlaneGeometry(10, 5, 200, 200);
   const groundMesh = new THREE.Mesh(groundGeometry, groundMaterial);
   groundMesh.rotation.x = -Math.PI / 2;
   groundMesh.position.x = 0;
   scene.add(groundMesh);
+  const guiFolderGround = gui.addFolder("Ground");
+  guiFolderGround.add(groundMaterial, "metalness").min(0).max(1).step(0.001);
+  guiFolderGround.add(groundMaterial, "roughness").min(0).max(1).step(0.001);
 
   /**
    * Physics

@@ -12,6 +12,8 @@ import wallRoughnessTexture from "./assets/wood-wall/wood-wall-roughness.jpg";
 import groundDiffuseTexture from "./assets/ground-tiles/floor_tiles_diff.jpg";
 import groundAoTexture from "./assets/ground-tiles/floor_tiles_ao.jpg";
 
+import glowTexture from "./assets/glow.png";
+
 //Envmap
 import envmap1Px from "./assets/environment-maps/1/px.png";
 import envmap1Nx from "./assets/environment-maps/1/nx.png";
@@ -43,6 +45,9 @@ export const textures = {};
  * Loader
  */
 const textureLoader = new THREE.TextureLoader();
+
+// Glow
+textures.glowTexture = textureLoader.load(glowTexture);
 
 // Walls
 textures.wallDiffuseTexture = textureLoader.load(wallDiffuseTexture);
