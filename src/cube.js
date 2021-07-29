@@ -1,19 +1,12 @@
 import * as CANNON from "cannon-es";
 import * as THREE from "three";
 import * as Tone from "tone";
-import { environmentMapTexture } from "./textures";
 
-const SPHERE_METALNESS = 0.7;
-const SPHERE_ROUGHNESS = 0.2;
+const CUBE_METALNESS = 0.3;
+const CUBE_ROUGHNESS = 0.7;
 
 export class Cube {
-  constructor(
-    size,
-    material = null,
-    position = [0, 0, 0],
-    musicNote = "G4",
-    envMapTexture
-  ) {
+  constructor(size, material = null, position = [0, 0, 0], musicNote = "G4") {
     this.size = size;
     this.material = material;
     this.position = position;
@@ -26,19 +19,17 @@ export class Cube {
     //create a synth and connect it to the main output (your speakers)
     this.synth = new Tone.Synth().toDestination();
 
-    // const geometry = new THREE.BoxGeometry(
-    //   size * 2,
-    //   size * 2,
-    //   size * 2,
-    //   100,
-    //   100,
-    //   100
-    // );
-    const geometry = new THREE.SphereGeometry(1, 64, 64);
+    const geometry = new THREE.BoxGeometry(
+      size * 2,
+      size * 2,
+      size * 2,
+      100,
+      100,
+      100
+    );
     const meshMaterial = new THREE.MeshStandardMaterial({
-      metalness: SPHERE_METALNESS,
-      roughness: SPHERE_ROUGHNESS,
-      envMap: envMapTexture,
+      metalness: CUBE_METALNESS,
+      roughness: CUBE_ROUGHNESS
     });
     const mesh = new THREE.Mesh(geometry, meshMaterial);
 
@@ -47,7 +38,7 @@ export class Cube {
     const body = new CANNON.Body({
       mass: 1,
       shape: boxShape,
-      material,
+      material
     });
     body.position.x = position[0];
     body.position.y = position[1];
@@ -75,8 +66,8 @@ export class Cube {
 
   deactivate() {
     this.timeOutFunction = setTimeout(() => {
-      this.mesh.material.metalness = SPHERE_METALNESS;
-      this.mesh.material.roughness = SPHERE_ROUGHNESS;
+      this.mesh.material.metalness = CUBE_METALNESS;
+      this.mesh.material.roughness = CUBE_ROUGHNESS;
     }, 200);
   }
 }
