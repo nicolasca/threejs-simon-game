@@ -12,7 +12,7 @@ import {
 } from "./walls";
 import { textures } from "./textures";
 
-let gui, scene, camera, controls, renderer, world, cubes;
+let gui, scene, camera, controls, renderer, world, cubes, composer;
 
 export const initScene = () => {
   gui = new dat.GUI();
@@ -29,6 +29,8 @@ export const initScene = () => {
 
   renderer = new THREE.WebGLRenderer();
   renderer.setSize(window.innerWidth, window.innerHeight);
+  renderer.shadowMap.enabled = true;
+
   document.body.appendChild(renderer.domElement);
 
   controls = new OrbitControls(camera, renderer.domElement);
@@ -47,6 +49,8 @@ export const initScene = () => {
     3: 0x000ff0
   };
   cubes.forEach((cube, index) => {
+    cube.mesh.castShadow = true;
+
     const guiFolderCube = gui.addFolder("Cube " + index);
     guiFolderCube.add(cube.mesh.material, "metalness", ...params);
     guiFolderCube.add(cube.mesh.material, "roughness", ...params);
@@ -68,7 +72,7 @@ export const initScene = () => {
   // Add the ground
   const groundMaterial = new THREE.MeshStandardMaterial({
     map: textures.groundDiffuseTexture,
-    aoMap: textures.groundAoTexture,
+    //aoMap: textures.groundAoTexture,
     metalness: 0.2,
     roughness: 0.5
   });
@@ -76,7 +80,10 @@ export const initScene = () => {
   const groundMesh = new THREE.Mesh(groundGeometry, groundMaterial);
   groundMesh.rotation.x = -Math.PI / 2;
   groundMesh.position.x = 0;
+  groundMesh.receiveShadow = true;
+
   scene.add(groundMesh);
+
   const guiFolderGround = gui.addFolder("Ground");
   guiFolderGround.add(groundMaterial, "metalness").min(0).max(1).step(0.001);
   guiFolderGround.add(groundMaterial, "roughness").min(0).max(1).step(0.001);
